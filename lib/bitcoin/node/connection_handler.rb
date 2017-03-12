@@ -32,7 +32,15 @@ module Bitcoin::Node
       @state = :new
       @version = nil
       @started = Time.now
-      @port, @host = *Socket.unpack_sockaddr_in(get_peername)  if get_peername
+      begin
+        @port, @host = *Socket.unpack_sockaddr_in(get_peername)  if get_peername
+      rescue Exception => e
+        if port && host
+          @port, @host = [port,host]
+        else
+          raise e
+        end
+      end
       @ping_nonce = nil
       @latency_ms = @node.config[:connection_timeout] * 1000
       @lock = Monitor.new
